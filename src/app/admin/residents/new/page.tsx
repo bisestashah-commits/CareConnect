@@ -1,17 +1,66 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase";
 
 export default function NewResidentPage() {
+  const router = useRouter();
+
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    setSaving(true);
+    setError("");
+    setSubmitted(false);
+
+    const formData = new FormData(event.currentTarget);
+
+    const fullName = formData.get("fullName") as string;
+    const residentId = formData.get("residentId") as string;
+    const room = formData.get("room") as string;
+    const dateOfBirth = formData.get("dateOfBirth") as string;
+    const emergencyContact = formData.get("emergencyContact") as string;
+    const careLevel = formData.get("careLevel") as string;
+    const mobility = formData.get("mobility") as string;
+
+    const supabase = createClient();
+
+    const { error } = await supabase.from("residents").insert({
+      resident_id: residentId,
+      full_name: fullName,
+      room: room,
+      date_of_birth: dateOfBirth,
+      emergency_contact: emergencyContact,
+      care_level: careLevel,
+      mobility: mobility,
+      status: "Active",
+    });
+
+    if (error) {
+      console.error("Error creating resident:", error);
+      setError(error.message);
+      setSaving(false);
+      return;
+    }
+
+    setSubmitted(true);
+    setSaving(false);
+
+    setTimeout(() => {
+      router.push("/admin/residents");
+    }, 1000);
+  }
 
   return (
     <main className="min-h-screen bg-slate-50">
-
       {/* Header */}
       <header className="border-b bg-white">
         <div className="flex items-center justify-between px-6 py-5">
-
           <div>
             <h1 className="text-2xl font-bold text-slate-900">
               CareConnect
@@ -25,13 +74,11 @@ export default function NewResidentPage() {
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-700">
             AU
           </div>
-
         </div>
       </header>
 
       {/* Main */}
       <div className="mx-auto max-w-4xl px-6 py-8">
-
         {/* Back */}
         <a
           href="/admin/residents"
@@ -53,13 +100,9 @@ export default function NewResidentPage() {
 
         {/* Form */}
         <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            setSubmitted(true);
-          }}
+          onSubmit={handleSubmit}
           className="mt-8 rounded-xl border bg-white p-6 shadow-sm"
         >
-
           {/* Personal Information */}
           <div>
             <h3 className="text-lg font-bold text-slate-900">
@@ -67,10 +110,8 @@ export default function NewResidentPage() {
             </h3>
 
             <div className="mt-6 grid gap-6 md:grid-cols-2">
-
               {/* Full Name */}
               <div className="md:col-span-2">
-
                 <label
                   htmlFor="fullName"
                   className="mb-2 block text-sm font-medium text-slate-700"
@@ -86,12 +127,10 @@ export default function NewResidentPage() {
                   required
                   className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
-
               </div>
 
               {/* Resident ID */}
               <div>
-
                 <label
                   htmlFor="residentId"
                   className="mb-2 block text-sm font-medium text-slate-700"
@@ -107,12 +146,10 @@ export default function NewResidentPage() {
                   required
                   className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
-
               </div>
 
               {/* Room */}
               <div>
-
                 <label
                   htmlFor="room"
                   className="mb-2 block text-sm font-medium text-slate-700"
@@ -128,12 +165,10 @@ export default function NewResidentPage() {
                   required
                   className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
-
               </div>
 
               {/* Date of Birth */}
               <div>
-
                 <label
                   htmlFor="dateOfBirth"
                   className="mb-2 block text-sm font-medium text-slate-700"
@@ -148,12 +183,10 @@ export default function NewResidentPage() {
                   required
                   className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
-
               </div>
 
               {/* Emergency Contact */}
               <div>
-
                 <label
                   htmlFor="emergencyContact"
                   className="mb-2 block text-sm font-medium text-slate-700"
@@ -169,24 +202,19 @@ export default function NewResidentPage() {
                   required
                   className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
-
               </div>
-
             </div>
           </div>
 
           {/* Care Information */}
           <div className="mt-10 border-t pt-8">
-
             <h3 className="text-lg font-bold text-slate-900">
               Care Information
             </h3>
 
             <div className="mt-6 grid gap-6 md:grid-cols-2">
-
               {/* Care Level */}
               <div>
-
                 <label
                   htmlFor="careLevel"
                   className="mb-2 block text-sm font-medium text-slate-700"
@@ -205,24 +233,14 @@ export default function NewResidentPage() {
                     Select care level
                   </option>
 
-                  <option value="Standard">
-                    Standard
-                  </option>
-
-                  <option value="Enhanced">
-                    Enhanced
-                  </option>
-
-                  <option value="High">
-                    High
-                  </option>
+                  <option value="Standard">Standard</option>
+                  <option value="Enhanced">Enhanced</option>
+                  <option value="High">High</option>
                 </select>
-
               </div>
 
               {/* Mobility */}
               <div>
-
                 <label
                   htmlFor="mobility"
                   className="mb-2 block text-sm font-medium text-slate-700"
@@ -241,27 +259,42 @@ export default function NewResidentPage() {
                     Select mobility status
                   </option>
 
-                  <option value="Independent">
-                    Independent
-                  </option>
-
+                  <option value="Independent">Independent</option>
                   <option value="Requires assistance">
                     Requires assistance
                   </option>
-
-                  <option value="Wheelchair">
-                    Wheelchair
-                  </option>
+                  <option value="Wheelchair">Wheelchair</option>
                 </select>
-
               </div>
-
             </div>
           </div>
 
+          {/* Error */}
+          {error && (
+            <div className="mt-6 rounded-lg bg-red-50 p-4 text-sm text-red-700">
+              <p className="font-semibold">
+                Unable to create resident
+              </p>
+
+              <p className="mt-1">{error}</p>
+            </div>
+          )}
+
+          {/* Success */}
+          {submitted && (
+            <div className="mt-6 rounded-lg bg-green-50 p-4 text-sm text-green-800">
+              <p className="font-semibold">
+                Resident created successfully!
+              </p>
+
+              <p className="mt-1">
+                Returning to Resident Management...
+              </p>
+            </div>
+          )}
+
           {/* Buttons */}
           <div className="mt-10 flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row sm:justify-end">
-
             <a
               href="/admin/residents"
               className="rounded-lg border border-slate-300 px-6 py-3 text-center font-semibold text-slate-700 hover:bg-slate-50"
@@ -271,35 +304,16 @@ export default function NewResidentPage() {
 
             <button
               type="submit"
-              className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
+              disabled={saving}
+              className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Create Resident
+              {saving ? "Creating..." : "Create Resident"}
             </button>
-
           </div>
-
         </form>
-
-        {/* Success message */}
-        {submitted && (
-          <div className="mt-6 rounded-lg bg-green-50 p-4 text-sm text-green-800">
-
-            <p className="font-semibold">
-              Demo resident created successfully.
-            </p>
-
-            <p className="mt-1">
-              The form submission worked, but the information is not
-              permanently stored yet. Database integration will be
-              added later.
-            </p>
-
-          </div>
-        )}
 
         {/* Disclaimer */}
         <div className="mt-6 rounded-lg bg-blue-50 p-4 text-sm text-blue-800">
-
           <p className="font-semibold">
             Demo System
           </p>
@@ -308,11 +322,8 @@ export default function NewResidentPage() {
             Please use fictional information only. This prototype is
             not connected to a real healthcare organisation.
           </p>
-
         </div>
-
       </div>
-
     </main>
   );
 }
