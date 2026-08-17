@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase";
 import { notFound } from "next/navigation";
+import DeactivateButton from "./components/DeactivateButton";
 
 const careNotes = [
   {
@@ -101,7 +102,7 @@ export default async function ResidentProfile({
             </div>
 
             <div className="flex items-center gap-3">
-              <span
+              <span 
               className={`rounded-full px-4 py-2 text-sm font-semibold ${
                 resident.status === "Active"
                 ? "bg-green-100 text-green-700"
@@ -110,14 +111,22 @@ export default async function ResidentProfile({
                 : "bg-slate-100 text-slate-600"
               }`}
               >
-                {resident.status}
-              </span>
+                 {resident.status}
+              </span>   
+
               <a
               href={`/admin/residents/${resident.resident_id}/edit`}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
               >
                 Edit Resident
               </a>
+              
+              <button
+              type="button"
+              className="rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
+              >
+                <DeactivateButton residentId={resident.resident_id} />
+              </button>
             </div>
             
           </div>
