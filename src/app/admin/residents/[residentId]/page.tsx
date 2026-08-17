@@ -1,21 +1,23 @@
+import AddIncident from "./components/AddIncident";
 import { createClient } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import DeactivateButton from "./components/DeactivateButton";
+import AddCareNote from "./components/AddCareNote";
 
-const careNotes = [
-  {
-    date: "12 August 2026",
-    note: "Morning care routine completed.",
-  },
-  {
-    date: "12 August 2026",
-    note: "Breakfast and hydration recorded.",
-  },
-  {
-    date: "11 August 2026",
-    note: "Mobility exercise completed with care team.",
-  },
-];
+// const careNotes = [
+//   {
+//     date: "12 August 2026",
+//     note: "Morning care routine completed.",
+//   },
+//   {
+//     date: "12 August 2026",
+//     note: "Breakfast and hydration recorded.",
+//   },
+//   {
+//     date: "11 August 2026",
+//     note: "Mobility exercise completed with care team.",
+//   },
+// ];
 
 export default async function ResidentProfile({
   params,
@@ -31,6 +33,26 @@ export default async function ResidentProfile({
     .select("*")
     .eq("resident_id", residentId)
     .single();
+
+  const { data: careNotes, error: careNotesError } = await supabase
+  .from("care_notes")
+  .select("id, note, created_at")
+  .eq("resident_id", residentId)
+  .order("created_at", { ascending: false });
+  
+  if (careNotesError) {
+    console.error("Care notes error:", careNotesError);
+  }
+
+  const { data: incidents, error: incidentsError } = await supabase
+  .from("incidents")
+  .select("id, title, description, severity, created_at")
+  .eq("resident_id", residentId)
+  .order("created_at", { ascending: false });
+  
+  if (incidentsError) {
+    console.error("Incidents error:", incidentsError);
+  }
 
   if (error || !resident) {
     notFound();
@@ -224,24 +246,104 @@ export default async function ResidentProfile({
             </h3>
 
             <p className="mt-1 text-sm text-slate-500">
-              Fictional demonstration notes
+              Add and view care notes for this resident.
             </p>
           </div>
+          
+          <AddCareNote residentId={resident.resident_id} />
 
           <div className="divide-y">
-            {careNotes.map((note, index) => (
-              <div key={index} className="px-6 py-5">
+            {careNotes && careNotes.length > 0 ? (
+              careNotes.map((note) => (
+              <div key={note.id} className="px-6 py-5">
                 <p className="text-sm font-medium text-slate-900">
                   {note.note}
                 </p>
-
+                
                 <p className="mt-1 text-xs text-slate-500">
-                  {note.date}
+                  {new Date(note.created_at).toLocaleDateString("en-AU", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
                 </p>
               </div>
-            ))}
+            ))
+          ) : (
+          <div className="px-6 py-5">
+            <p className="text-sm text-slate-500">
+              No care notes recorded yet.
+            </p>
           </div>
+        )}
+        </div>
         </section>
+
+        {/* Incidents */}
+        <section className="mt-8 rounded-xl border bg-white shadow-sm">
+          <div className="border-b px-6 py-5">
+            <h3 className="text-lg font-bold text-slate-900">
+              Recent Incidents
+            </h3>
+            
+            <p className="mt-1 text-sm text-slate-500">
+              Resident incident records
+            </p>
+          </div>
+
+          <div className="border-b px-6 py-5">
+            <AddIncident residentId={resident.resident_id} />
+          </div>
+          
+          <div className="divide-y">
+            {incidents && incidents.length > 0 ? (
+              incidents.map((incident) => (
+              <div key={incident.id} className="px-6 py-5">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {incident.title}
+                  </p>
+                  
+                  <p className="mt-1 text-sm text-slate-600">
+                    {incident.description}
+                  </p>
+                  
+                  <p className="mt-2 text-xs text-slate-500">
+                    {new Date(incident.created_at).toLocaleDateString(
+                      "en-AU",
+                      {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      }
+                    )}
+                  </p>
+                </div>
+                
+                <span
+                className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${
+                  incident.severity === "High"
+                  ? "bg-red-100 text-red-700"
+                  : incident.severity === "Medium"
+                  ? "bg-yellow-100 text-yellow-700"
+                  : "bg-green-100 text-green-700"
+                }`}
+                >
+                  {incident.severity}
+                </span>
+              </div>
+            </div>
+          ))
+        ) : (
+        <div className="px-6 py-5">
+          <p className="text-sm text-slate-500">
+            No incidents recorded.
+          </p>
+        </div>
+      )}
+      </div>
+      </section>
 
         {/* Demo Warning */}
         <div className="mt-6 rounded-lg bg-blue-50 p-4 text-sm text-blue-800">
