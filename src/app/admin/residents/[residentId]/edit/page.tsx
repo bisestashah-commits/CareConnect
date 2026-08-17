@@ -94,7 +94,7 @@ export default function EditResidentPage() {
 
     const supabase = createClient();
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("residents")
       .update({
         full_name: formData.fullName,
@@ -105,7 +105,11 @@ export default function EditResidentPage() {
         mobility: formData.mobility,
         status: formData.status,
       })
-      .eq("resident_id", residentId);
+      .eq("resident_id", residentId)
+      .select()
+      
+      console.log("Updated resident:", data);
+      console.log("Update error:", error);
 
     if (error) {
       console.error("Error updating resident:", error);
