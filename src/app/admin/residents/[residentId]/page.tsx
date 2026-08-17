@@ -100,17 +100,26 @@ export default async function ResidentProfile({
               </div>
             </div>
 
-            <span
+            <div className="flex items-center gap-3">
+              <span
               className={`rounded-full px-4 py-2 text-sm font-semibold ${
                 resident.status === "Active"
-                  ? "bg-green-100 text-green-700"
-                  : resident.status === "Review Required"
-                    ? "bg-yellow-100 text-yellow-700"
-                    : "bg-slate-100 text-slate-600"
+                ? "bg-green-100 text-green-700"
+                : resident.status === "Review Required"
+                ? "bg-yellow-100 text-yellow-700"
+                : "bg-slate-100 text-slate-600"
               }`}
-            >
-              {resident.status}
-            </span>
+              >
+                {resident.status}
+              </span>
+              <a
+              href={`/admin/residents/${resident.resident_id}/edit`}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+              >
+                Edit Resident
+              </a>
+            </div>
+            
           </div>
         </section>
 
