@@ -173,7 +173,7 @@ export default async function AdminDashboard() {
             </div>
 
             <div className="divide-y">
-              {recentResidents.map((resident) => (
+              {recentResidents?.map((resident) => (
                 <div
                   key={resident.id}
                   className="flex items-center justify-between px-6 py-5"
