@@ -1,57 +1,83 @@
-const stats = [
-  {
-    title: "Total Residents",
-    value: "124",
-    description: "Currently registered",
-  },
-  {
-    title: "Care Team",
-    value: "38",
-    description: "Active staff members",
-  },
-  {
-    title: "Open Incidents",
-    value: "7",
-    description: "Require attention",
-  },
-  {
-    title: "Care Notes",
-    value: "286",
-    description: "Recorded this month",
-  },
-];
+import { createClient } from "@/lib/supabase";
 
-const recentResidents = [
-  {
-    name: "Margaret Wilson",
-    room: "Room 102",
-    status: "Active",
-  },
-  {
-    name: "John Smith",
-    room: "Room 118",
-    status: "Active",
-  },
-  {
-    name: "Sarah Johnson",
-    room: "Room 205",
-    status: "Review Required",
-  },
-  {
-    name: "David Brown",
-    room: "Room 214",
-    status: "Active",
-  },
-];
+export default async function AdminDashboard() {
+  const supabase = createClient();
 
-const recentActivity = [
-  "Care note added for Margaret Wilson",
-  "Incident reported for Sarah Johnson",
-  "New resident profile created",
-  "Family message received",
-];
+  const [
+    { count: residentCount, error: residentsError },
+    { count: incidentCount, error: incidentsError },
+    { count: careNoteCount, error: careNotesError },
+  ] = await Promise.all([
+    supabase
+      .from("residents")
+      .select("*", { count: "exact", head: true }),
 
-export default function AdminDashboard() {
+    supabase
+      .from("incidents")
+      .select("*", { count: "exact", head: true }),
+
+    supabase
+      .from("care_notes")
+      .select("*", { count: "exact", head: true }),
+  ]);
+
+  if (residentsError) {
+    console.error("Dashboard residents error:", residentsError);
+  }
+
+  if (incidentsError) {
+    console.error("Dashboard incidents error:", incidentsError);
+  }
+
+  if (careNotesError) {
+    console.error("Dashboard care notes error:", careNotesError);
+  }
+
+  const stats = [
+    {
+      title: "Total Residents",
+      value: String(residentCount ?? 0),
+      description: "Currently registered",
+    },
+    {
+      title: "Care Team",
+      value: "38",
+      description: "Demo staff members",
+    },
+    {
+      title: "Incidents",
+      value: String(incidentCount ?? 0),
+      description: "Recorded incidents",
+    },
+    {
+      title: "Care Notes",
+      value: String(careNoteCount ?? 0),
+      description: "Total recorded notes",
+    },
+  ];
+
+  const { data: recentResidents, error: recentResidentsError } =
+  await supabase
+    .from("residents")
+    .select("id, full_name, room, status")
+    .order("created_at", { ascending: false })
+    .limit(4);
+  
+  if (recentResidentsError) {
+    console.error(
+      "Dashboard recent residents error:",
+      recentResidentsError
+    );
+  }
+
+  const recentActivity = [
+    "Care note added for Margaret Wilson",
+    "Incident reported for Sarah Johnson",
+    "New resident profile created",
+    "Family message received",
+  ];
+
+
   return (
     <main className="min-h-screen bg-slate-50">
       {/* Header */}
@@ -138,20 +164,23 @@ export default function AdminDashboard() {
                 </p>
               </div>
 
-              <button className="text-sm font-semibold text-blue-600 hover:text-blue-700">
+              <a
+              href="/admin/residents"
+              className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+              >
                 View All
-              </button>
+              </a>
             </div>
 
             <div className="divide-y">
               {recentResidents.map((resident) => (
                 <div
-                  key={resident.name}
+                  key={resident.id}
                   className="flex items-center justify-between px-6 py-5"
                 >
                   <div>
                     <p className="font-semibold text-slate-900">
-                      {resident.name}
+                      {resident.full_name}
                     </p>
 
                     <p className="mt-1 text-sm text-slate-500">
@@ -214,15 +243,19 @@ export default function AdminDashboard() {
 
           <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-            <button className="rounded-lg border border-slate-200 p-4 text-left hover:bg-slate-50">
+            <a
+             href="/admin/residents/new"
+             className="block rounded-lg border border-slate-200 p-4 text-left hover:bg-slate-50"
+            >
               <p className="font-semibold text-slate-900">
-                Add Resident
+                 Add Resident
               </p>
 
               <p className="mt-1 text-sm text-slate-500">
                 Create a resident profile
               </p>
-            </button>
+
+            </a>
 
             <button className="rounded-lg border border-slate-200 p-4 text-left hover:bg-slate-50">
               <p className="font-semibold text-slate-900">
